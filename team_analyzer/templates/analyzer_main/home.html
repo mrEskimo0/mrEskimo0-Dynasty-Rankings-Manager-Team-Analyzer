@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="shortcut icon" type="image/png" href="{% static '/images/favicon.png' %}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="{% static '/css/main.css' %}">
+
+<style media="screen">
+  .fa {
+  /* padding: 20px; */
+  font-size: 35px;
+  width: 40px;
+  border-radius: 100%;
+  text-align: center;
+  text-decoration: none;
+}
+
+  .fa:hover {
+  opacity: 0.7;
+}
+/* Twitter */
+.fa-twitter {
+  background: #55ACEE;
+  color: white;
+}
+
+.fa-youtube {
+  background: #FF0000;
+  color: white;
+}
+
+.fa-instagram {
+  background: white;
+  color: #C13584;
+}
+</style>
+
+<title>Home</title>
+
+<body>
+  <div class="container">
+    <div class="jumbotron">
+      <h2>3rd and 20 Dynasty Fantasy Football Rankings Manager + Team Analyzer</h2>
+      <br>
+      <h4>Manage Your Dynasty Rankings + Analyze Your Dynasty Leagues</h4>
+      <br>
+      <h4>Log in or Create an Account Below</h4>
+      <h5>(It's 100% Free)</h5>
+    </div>
+  </div>
+  <br>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card card-body" style="background-color: #5bc0de;">
+          <h5 class="card-title">Login to an Existing Account</h5>
+          <hr>
+          <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card card-body" style="background-color: #5bc0de;">
+          <h5 class="card-title">Create a New Account</h5>
+          <hr>
+          <a href="{% url 'register' %}" class="btn btn-primary">Create an Account</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="container">
+    <div class="row">
+      <h3 style="text-align: center;">Features:</h3>
+      <br>
+      <br>
+      <div class="col-md-4 d-flex align-items-stretch">
+        <div class="card card-body features">
+          <h5 class="card-title">Rankings Manager</h5>
+          <hr>
+          <ol>
+            <li>Create and Manage Dynasty Rankings from Existing Templates</li>
+            <li>Categorize Rankings by League Type</li>
+            <li>Change Player Rankings by:
+            <ul>
+              <li>Ranking Number</li>
+              <li>Player Value</li>
+              <li>% Change</li>
+            </ul></li>
+            <li>Manage Multiple Rankings</li>
+          </ol>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex align-items-stretch">
+        <div class="card card-body features">
+          <h5 class="card-title">League Analyzer</h5>
+          <hr>
+          <ol>
+            <li>View the Value of Teams in Your Leagues</li>
+            <li>Compare Teams</li>
+            <li>View Total Team Value by Position</li>
+            <li>League Wide and Team Specific Analysis</li>
+          </ol>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex align-items-stretch">
+        <div class="card card-body features">
+          <h5 class="card-title">They Work for Each Other</h5>
+          <hr>
+          <p>Rankings Values are used for Player/Draft Pick Values in the League Analyzer!</p>
+          <br>
+          <p>Use Keep Trade Cut, 3rd and 20, or Create Your Own Rankings!</p>
+        </div>
+      </div>
+    </div>
+    <br>
+  </div>
+  <hr>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <!-- <h3>Demo</h3> -->
+        <div class="youtube-embed">
+          <iframe width="800" height="400" class="embed-responsive-item" src="https://www.youtube.com/embed/BqG091y0ssg" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+
+  <footer class="text-lg-start text-muted">
+    <div class="container-fluid">
+
+
+      <div class="row">
+
+
+        <div class="col-md-3 col-sm-3 d-none d-sm-block">
+          <img src="{% static '/images/logo.png' %}" alt="" height=125 width=125>
+        </div>
+
+        <div class="col-md-9 col-sm-9">
+          <div class="row">
+            <!-- <div class="col">
+              <br>
+              <br>
+              <a href="https://3rdand20.com/" class="me-4 text-reset">Blog</a>
+            </div> -->
+            <div class="col">
+              <br>
+              <br>
+              <a href="https://twitter.com/3rdand20_?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor" class="fa fa-twitter"></a>
+            </div>
+            <div class="col">
+              <br>
+              <br>
+              <a href="https://www.instagram.com/3rdand20podcast/" class="fa fa-instagram"></a>
+
+            </div>
+            <div class="col">
+              <br>
+              <br>
+              <a href="https://www.youtube.com/channel/UCgVLgU8SXgRXo-ofM9vuZ8A" class="fa fa-youtube"></a>
+
+            </div>
+            <div class="col">
+              <br>
+              <p class="me-4 text-reset">Contact Us:</p>
+              <p class="me-4 text-reset">3rdand20football@gmail.com</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.05);">
+    © 2021 Copyright:
+    <a class="text-reset fw-bold" href="http://3rdand20.com/">3rdand20.com</a>
+    </div>
+
+  </footer>
+<br>
+</body>

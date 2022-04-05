@@ -1,0 +1,39 @@
+body {
+  background-color: #f5f6fa;
+}
+
+.wrapper {
+  margin-top: 80px;
+  margin-bottom: 80px;
+}
+
+.form-signin {
+  max-width: 380px;
+  padding: 15px 35px 45px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border: 1px solid rgba(0,0,0,0.2);
+
+  .form-signin-heading,
+    .checkbox {
+      margin-bottom: 30px;
+    }
+
+}
+
+p {
+  height: 5px;
+}
+
+.sign-up{
+  margin-right: 10px;
+  float: left;
+}
+
+.login_btn {
+  margin-bottom: 10px;
+}
+
+.forgot-password {
+  font-size: .8em;
+}

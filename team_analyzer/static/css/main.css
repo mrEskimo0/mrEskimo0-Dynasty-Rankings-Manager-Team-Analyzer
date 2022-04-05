@@ -1,0 +1,105 @@
+.youtube-embed {
+  position: relative;
+  padding-bottom: 56%;
+  width: 100%;
+  text-align: left;
+}
+
+.youtube-embed iframe {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  overflow: hidden;
+}
+
+.features{
+  background-color: #5bc0de;
+}
+
+.jumbotron {
+  background-color: #979797;
+  text-align: center;
+  padding-top: 3%;
+  padding-bottom: 3%;
+  margin-top: 5%;
+}
+
+body{
+  background-color: #f5f6fa;
+}
+
+.addbutton {
+  position: absolute;
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-bottom: 8px solid black;
+	display: inline-block;
+}
+
+.minbutton {
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 8px solid black;
+	display: inline-block;
+  margin-top: 20px;
+}
+
+.pcnt-change{
+  width: 116px;
+}
+
+.addbutton2 {
+  position: absolute;
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-bottom: 8px solid black;
+  margin-top: 10px;
+	display: inline-block;
+}
+
+.minbutton2 {
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 8px solid black;
+	display: inline-block;
+  margin-top: 25px;
+}
+
+.btn.btn-secondary {
+  display: absolute;
+  margin-top: -10px;
+}
+
+.player-value{
+  width: 100px;
+}
+
+.table-hover tbody tr:hover td {
+    background: #bcbaba;
+}
+
+.submit-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn.btn-secondary.percent {
+  margin: 0px;
+  padding: 8px;
+  width: 62px;
+  max-width: 62px;
+  font-size: .9em;
+  margin-top: -18px;
+}
+
+span{
+  color: white;
+}

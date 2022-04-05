@@ -1,0 +1,49 @@
+{% extends 'analyzer_main/main.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-sm-6">
+    <div class="container">
+
+
+      <div class="card card-body">
+        <h2>{{ display_name }}</h2>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Position</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="container">
+      <br>
+      <br>
+      <div>
+        <canvas id="medianRadar"></canvas>
+      </div>
+      <br>
+      <div>
+        <canvas id="myTeamChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var league_id = "{{ league_id }}"
+  var display_name = "{{ display_name }}"
+</script>
+<script type="text/javascript" src="{% static '/js/team_view.js' %}"></script>
+
+{% endblock content %}

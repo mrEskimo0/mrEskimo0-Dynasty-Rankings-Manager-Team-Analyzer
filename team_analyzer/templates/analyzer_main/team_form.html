@@ -1,0 +1,50 @@
+{% extends 'analyzer_main/main.html' %}
+
+{% block content %}
+{% load static %}
+
+
+<br>
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form action="" method="POST">
+        {% csrf_token %}
+        <!-- {{form}} -->
+        <h5>{{ form.name.label }}</h5>
+        {{form.name}}
+        <br>
+        <br>
+        <h5>Sleeper League ID</h5>
+        {{form.league_id}}
+        <br>
+        <br>
+        <h5>Rankings</h5>
+        {{form.user_ranking}}
+        <br>
+        <br>
+        <h5>Draft Order</h5>
+        {{form.draft_order}}
+        <br>
+        <br>
+        <input type="submit" value="Submit" class="btn btn-lg btn-info">
+      </form>
+    </div>
+    <div class="col">
+      <br>
+      <br>
+      <h6>Sleeper League ID can be found in the URL of Your League:</h6>
+      <img src="{% static '/images/demo.png' %}" alt="">
+      <br>
+      <br>
+      <h6>Your Sleeper Username can be found in Matchups</h6>
+      <img src="{% static '/images/usernamedemo.png' %}" alt="">
+      <br>
+      <br>
+      <p>(Yes this is one of my teams, bask in it's glory)</p>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}

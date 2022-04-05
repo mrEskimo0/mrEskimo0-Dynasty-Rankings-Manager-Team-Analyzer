@@ -1,0 +1,11 @@
+**/__pycache__/
+**__pycache__/
+**/__pychache__
+**.DS_Store
+/data
+.env
+team_analyzer/team_analyzer/settings.py
+settings.py
+team_analyzer/data.json
+team_analyzer/team_analyzer/local_settings.py
+team_analyzer/team_analyzer/production_settings.py

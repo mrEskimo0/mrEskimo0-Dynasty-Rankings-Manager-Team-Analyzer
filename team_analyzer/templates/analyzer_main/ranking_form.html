@@ -1,0 +1,46 @@
+
+{% extends 'analyzer_main/main.html' %}
+
+{% block content %}
+{% load static %}
+<style media="screen">
+  #mr-stonks {
+    height: 80%;
+    width: 80%;
+  }
+</style>
+
+<br>
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <form action="" method="POST">
+        {% csrf_token %}
+        <!-- {{form}} -->
+        <h5>Ranking {{ form.name.label }}</h5>
+        {{ form.name }}
+        <br>
+        <br>
+        <h5>Ranking Template</h5>
+        {{ form.choose_ranks }}
+        <br>
+        <br>
+        <h5>Ranking Type</h5>
+        {{form.tags}}
+
+        <input type="submit" value="Submit" class="btn btn-lg btn-info">
+      </form>
+    </div>
+    <div class="col-md-8">
+      <br>
+      <br>
+      <h5>We're Out Here Stonking</h5>
+      <img src="{% static '/images/stonks.jpeg' %}" alt="" id="mr-stonks">
+    </div>
+
+  </div>
+</div>
+
+
+
+{% endblock content %}

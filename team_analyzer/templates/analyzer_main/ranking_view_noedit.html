@@ -1,0 +1,133 @@
+{% extends 'analyzer_main/main.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  p{
+    margin-right: 10px;
+  }
+
+  li{
+    height: 25px;
+    white-space:nowrap;
+    list-style-type: none;
+    margin-left: -30px;
+    display: flex;
+  }
+
+  li label{
+    float: right;
+    clear: right;
+    text-align: right;
+  }
+
+  .filterbtn{
+    width: 110px;
+    margin-bottom: 5px;
+  }
+
+</style>
+
+<br>
+<div class="container">
+  <div class="row">
+    <div class="col-3" style="text-align: center;">
+        <h2>{{users_rank.name}}</h2>
+    </div>
+
+    <div class="col-3" style="text-align: center;">
+    </div>
+
+    <div class="col-3" style="text-align: center;">
+        {% for i in tags %}
+          {{i}}
+        {% endfor %}
+    </div>
+
+    <div class="col-3">
+    </div>
+  </div>
+</div>
+      <br>
+
+<div class="list_here container-fluid">
+  <div class="row" style="text-align: center;">
+      <div class="card card-body">
+        <form method="get" style="display:flex; flex-direction: row; justify-content: center; align-items: center;">
+          {{ myfilter.form.as_p }}
+         <button class="btn btn-secondary" type="submit" onclick="reload=true">Search</button>
+        </form>
+      </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover" id="ranking-table">
+          <thead>
+            <tr>
+              <th scope="col">Rank ↕</th>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Position</th>
+              <th scope="col">Value</th>
+              <th scope="col">% Change</th>
+            </tr>
+          </thead>
+          {% for i in rankings %}
+            <tr class="ranking-row">
+              <td>
+                <div class="addbutton"></div>
+                <div class="minbutton"></div>
+              </td>
+              <td class="count">{{forloop.counter}}</td>
+              <td class="player-name">{{i.player.name}}</td>
+              <td>{{i.player.position}}</td>
+              <td>
+                  <input type="number" value="{{i.value|floatformat:2}}" class="form-control player-value">
+              </td>
+              <td>
+                <div class="pcnt-change">
+                  <button type="button" name="button" class="btn btn-secondary percent">10 %</button>
+                  <div class="addbutton2"></div>
+                  <div class="minbutton2"></div>
+                </div>
+              </td>
+            </tr>
+
+          {% endfor %}
+        </table>
+      </div>
+  </div>
+</div>
+
+<div class="container">
+
+  {% if rankings.has_previous %}
+    <a href="?page=1">&laquo First</a>
+    <a href="?page={{ rankings.previous_page_number }}">Previous</a>
+  {% endif %}
+
+  Page {{ rankings.number }} of {{ rankings.paginator.num_pages }}
+
+  {% if rankings.has_next %}
+    <a href="?page={{ rankings.next_page_number }}">Next</a>
+    <a href="?page={{ rankings.paginator.num_pages }}">Last &raquo</a>
+  {% endif %}
+
+</div>
+
+<script>
+  reload = false
+  $('.ranking-row').each(function() {
+    var multiplier = '{{rankings.number}}';
+    var rank_num = $(this).find(".count");
+    var new_rank = parseInt(rank_num.text()) + ((parseInt(multiplier) * 100) - 100);
+    rank_num.text(new_rank);
+  })
+</script>
+
+<script type="text/javascript" src="{% static '/js/view_rankings.js' %}"></script>
+
+{% endblock content %}
