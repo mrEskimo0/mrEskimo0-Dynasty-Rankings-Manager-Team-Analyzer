@@ -6,9 +6,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.forms import formset_factory
+from django.db import IntegrityError
 from . import forms
 from .models import *
-from .functions import get_user_team, copy_default_rankings, get_team_ids, get_league
+from .functions import copy_default_rankings, get_league
 from .forms import Insert_ID, User_Ranking_Form, User_Insert_ID, Create_User_Form
 from .filters import RankingFilter
 from .serializers import *
@@ -22,26 +23,8 @@ from django.db.models import Q
 
 
 def home(request):
-    form = Insert_ID()
 
-    if request.method == 'POST':
-        form = forms.Insert_ID(request.POST)
-
-        if form.is_valid():
-            #call function to get team
-            league_id = form.cleaned_data['id']
-            display_name = form.cleaned_data['display_name']
-
-            rankings = User_Ranking.objects.get(name="default_test")
-
-            user_team, n_sums = get_user_team(league_id, display_name, rankings)
-
-            context = {'user_team':user_team, 'n_sums':n_sums}
-
-            return render(request, 'analyzer_main/team_view_sample.html', context)
-
-
-    return render(request, 'analyzer_main/home.html', {'form':form})
+    return render(request, 'analyzer_main/home.html')
 
 @login_required(login_url='login')
 def dashboard(request):
@@ -94,8 +77,15 @@ def logout_User(request):
 
 @login_required(login_url='login')
 def ranking_view(request, r_name):
-    users_rank = User_Ranking.objects.get(name=r_name)
-    rankings_set = Ranking.objects.filter(user_ranking__name=r_name).order_by('-value')
+    c_user = User.objects.get(username=request.user.username)
+
+    #Query default ranks without user
+    if r_name == 'Consensus Superflex' or r_name == 'Consensus Standard':
+        users_rank = User_Ranking.objects.get(name=r_name)
+    else:
+        users_rank = User_Ranking.objects.get(name=r_name, user=c_user)
+
+    rankings_set = Ranking.objects.filter(user_ranking=users_rank).order_by('-value')
     tags = users_rank.tags.all()
 
     myfilter = RankingFilter(request.GET, queryset=rankings_set)
@@ -108,12 +98,10 @@ def ranking_view(request, r_name):
     #refresh players button
     if 'refresh_players' in request.POST and request.method == 'POST':
         #current ranks are rankings_set
-        # current_set = Ranking.objects.filter(user_ranking__name=r_name).exclude(player__position='Pick')
         current_set = Ranking.objects.filter(user_ranking__name=r_name)
         current_ranks_list = set(current_set.values_list('player', 'player__position'))
 
         #pull most recent ktc
-        # ktc_set = Ranking.objects.filter(user_ranking__name='Consensus Superflex').exclude(player__position='Pick')
         ktc_set = Ranking.objects.filter(user_ranking__name='Consensus Superflex')
 
         ktc_ranks_list = set(ktc_set.values_list('player', 'player__position'))
@@ -121,7 +109,6 @@ def ranking_view(request, r_name):
         take_aways = list(current_ranks_list - ktc_ranks_list)
         #delete take_aways from user's ranking set
         for player in take_aways:
-            #Player.objects.get(id=player) <-- might have to get the player object to pass into delete method, same with create
             consensus_player = Ranking.objects.get(user_ranking__name='Consensus Superflex', player=player[0])
             Ranking.objects.filter(user_ranking=users_rank, player=consensus_player.player).delete()
 
@@ -131,11 +118,6 @@ def ranking_view(request, r_name):
             consensus_player = Ranking.objects.get(user_ranking__name='Consensus Superflex', player=player[0])
 
             Ranking.objects.create(user_ranking=users_rank, player=consensus_player.player, user=request.user, value=consensus_player.value)
-            # my_obj = Player.objects.get(id=player[0])
-            # print(my_obj)
-            # print(player)
-
-
 
         #call func to compare and add/delete
 
@@ -160,7 +142,6 @@ def ranking_view(request, r_name):
 
                 #create instance in ranking history
                 Ranking_History.objects.get_or_create(ranking=ranking_obj, date=today)
-                # Ranking.objects.create(user_ranking=users_rank, user=request.user, player=player, value=value, date_last_updated=datetime.date.today())
 
     if r_name == 'Consensus Superflex' or r_name == 'Consensus Standard':
         if not request.user.is_superuser:
@@ -174,17 +155,6 @@ def ranking_view(request, r_name):
         context = {'rankings':rankings_list, 'users_rank':users_rank, 'myfilter':myfilter, 'tags':tags}
         return render(request, 'analyzer_main/ranking_view.html', context)
 
-
-
-def team_view_sample(request, u_team):
-    ranking_set = User_Ranking.objects.get(name="default_test")
-    #assumes league id + team name are saved in database for user
-    team_creds = Team.objects.filter(team=u_team)[0]
-    user_team, n_sums = get_user_team(team_creds.league_id, team_creds.team_name, ranking_set)
-
-    context ={'team_creds':team_creds, 'user_team':user_team, 'n_sums':n_sums}
-    return render(request, 'analyzer_main/team_view.html', context)
-
 @api_view(['GET'])
 @login_required(login_url='login')
 def league_view(request, league_id):
@@ -196,7 +166,7 @@ def league_view(request, league_id):
         league_output.objects.filter(league_id=league_id, user=c_user).delete()
         table_league_total.objects.filter(league_id=league_id, user=c_user).delete()
 
-        this_league = League.objects.get(league_id=league_id)
+        this_league = League.objects.get(league_id=league_id, user=c_user)
         #run func to get df of teams
         league_df = get_league(league_id, this_league)
         ranks_df = pd.DataFrame.from_records(Ranking.objects.filter(user_ranking=this_league.user_ranking).values())[['player_id', 'value', 'date_last_updated']]
@@ -207,31 +177,30 @@ def league_view(request, league_id):
         league_df.rename(columns={'players':'player_id'}, inplace=True)
         players_df.rename(columns={'id':'player_id'}, inplace=True)
         #join dfs on player id
-        # dfs = [league_df, players_df,  ranks_df]
-        # df_final = reduce(lambda left,right: pd.merge(left, right, on='player_id'), dfs)
         df_temp = pd.merge(league_df, players_df)
         df_final = pd.merge(df_temp, ranks_df, how='left', on=['player_id'])
         df_final['value'] = df_final['value'].fillna(0)
         df_final['league_id'] = league_id
         df_final['user_id'] = c_user.id
+        df_final['username'] = c_user.username
         df_final.index.names = ['id']
         df_final = df_final.drop('owner_id', 1)
         df_final = df_final.drop('roster_id', 1)
-        df_final['primary_id'] = df_final['league_id'] + df_final['display_name'] + df_final['name']
-        # df_final.round({'value':1})
+        df_final['primary_id'] = df_final['league_id'] + df_final['display_name'] + df_final['name'] + df_final['username']
+        df_final = df_final.drop('username', 1)
         league_df_todb(df_final)
 
-        #GOOD JSON OUTPUT
-        # output = df_final.to_dict('records')
         #league chart
-        hello = df_final.groupby(['display_name'])['value'].sum()
-        hello = hello.reset_index()
-        hello['league_id'] = league_id
-        hello['user_id'] = c_user.id
-        hello.index.names = ['id']
-        hello['primary_id'] = hello['league_id'] + hello['display_name'] + hello['user_id'].astype(str)
-        leaguetotals_df_todb(hello)
-        names = hello['display_name'].tolist()
+        league_chart_df = df_final.groupby(['display_name'])['value'].sum()
+        league_chart_df = league_chart_df.reset_index()
+        league_chart_df['league_id'] = league_id
+        league_chart_df['user_id'] = c_user.id
+        league_chart_df['username'] = c_user.username
+        league_chart_df.index.names = ['id']
+        league_chart_df['primary_id'] = league_chart_df['league_id'] + league_chart_df['display_name'] + league_chart_df['username']
+        league_chart_df = league_chart_df.drop('username', 1)
+        leaguetotals_df_todb(league_chart_df)
+        names = league_chart_df['display_name'].tolist()
 
         context = {'names':names,'league_id':league_id}
 
@@ -259,6 +228,10 @@ def make_ranking(request):
         print(form.errors)
         if form.is_valid():
             new_rank = form.save(commit=False)
+            if form.cleaned_data['name'].lower() == 'consensus superflex' or form.cleaned_data['name'].lower() == 'consensus standard':
+                error = 'Please choose a different ranking name than consensus superflex or consensus standard'
+                context = {'form':form, 'error':error}
+                return render(request, 'analyzer_main/ranking_form.html', context)
             template = form.cleaned_data['choose_ranks']
             new_rank.user = c_user
             new_rank.save()
@@ -275,7 +248,6 @@ def make_team(request):
     form = User_Insert_ID()
     form.fields["user_ranking"].queryset = User_Ranking.objects.filter(Q(user=request.user) | Q(name='Consensus Superflex') | Q(name='Consensus Standard'))
 
-
     if request.method == 'POST':
 
         form = User_Insert_ID(request.POST)
@@ -283,10 +255,12 @@ def make_team(request):
             new_team = form.save(commit=False)
 
             new_team.user = c_user
-            #get player ids
-            # this_teams_ids = get_team_ids(new_team.team_name, new_team.league_id)
-
-            new_team.save()
+            try:
+                new_team.save()
+            except IntegrityError:
+                error = "ERROR: League ID Already Exists for this User"
+                context = {'form':form, 'error':error}
+                return render(request, 'analyzer_main/team_form.html', context)
 
             return redirect('/dashboard')
 
@@ -295,7 +269,8 @@ def make_team(request):
 
 @login_required(login_url='login')
 def update_team(request, league_id):
-    user_team = League.objects.get(league_id=league_id)
+    c_user = User.objects.get(username=request.user.username)
+    user_team = League.objects.get(league_id=league_id, user=c_user)
     form = User_Insert_ID(instance=user_team)
     form.fields["user_ranking"].queryset = User_Ranking.objects.filter(Q(user=request.user) | Q(name='Consensus Superflex') | Q(name='Consensus Standard'))
 
@@ -310,7 +285,8 @@ def update_team(request, league_id):
 
 @login_required(login_url='login')
 def update_ranking(request, r_name):
-    user_ranking = User_Ranking.objects.get(name=r_name)
+    c_user = User.objects.get(username=request.user.username)
+    user_ranking = User_Ranking.objects.get(name=r_name, user=c_user)
     form = User_Ranking_Form(instance=user_ranking)
 
     if request.method == 'POST':
@@ -327,7 +303,8 @@ def update_ranking(request, r_name):
 
 @login_required(login_url='login')
 def delete_team(request, league_id):
-    user_team = League.objects.get(league_id=league_id)
+    c_user = User.objects.get(username=request.user.username)
+    user_team = League.objects.get(league_id=league_id, user=c_user)
     if request.method == 'POST':
         user_team.delete()
         return redirect('/dashboard')
@@ -336,7 +313,8 @@ def delete_team(request, league_id):
 
 @login_required(login_url='login')
 def delete_ranking(request, r_name):
-    user_ranking = User_Ranking.objects.get(name=r_name)
+    c_user = User.objects.get(username=request.user.username)
+    user_ranking = User_Ranking.objects.get(name=r_name, user=c_user)
     if request.method == 'POST':
         if not request.user.is_superuser and user_ranking.user.username == 'mrEskimo0':
             return redirect('/dashboard')

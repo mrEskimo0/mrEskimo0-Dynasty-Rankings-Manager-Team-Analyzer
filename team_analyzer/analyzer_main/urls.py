@@ -13,7 +13,6 @@ urlpatterns = [
     path('ranking_view/<str:r_name>',views.ranking_view,name='ranking_view'),
     path('league_view/<str:league_id>',views.league_view,name='league_view'),
     path('team_view/<str:league_id>/<str:display_name>',views.team_view,name='team_view'),
-    path('team_view_sample/<str:u_team>',views.team_view_sample,name='team_view_sample'),
     #dashboard crud paths
     path('make_ranking',views.make_ranking,name='make_ranking'),
     path('make_team',views.make_team,name='make_team'),

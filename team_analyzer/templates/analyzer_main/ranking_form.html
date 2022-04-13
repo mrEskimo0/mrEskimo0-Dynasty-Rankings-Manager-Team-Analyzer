@@ -25,9 +25,14 @@
         {{ form.choose_ranks }}
         <br>
         <br>
-        <h5>Ranking Type</h5>
+        <h5>Ranking Type (Tags)</h5>
         {{form.tags}}
-
+        {% if form.errors %}
+          {{form.errors}}
+        {% endif %}
+        {% if error %}
+          {{ error }}
+        {% endif %}
         <input type="submit" value="Submit" class="btn btn-lg btn-info">
       </form>
     </div>

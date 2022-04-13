@@ -25,10 +25,15 @@ class Player(models.Model):
         return self.name
 
 class User_Ranking(models.Model):
-    name = models.CharField(max_length=75, unique=True)
+    name = models.CharField(max_length=75)
     tags = models.ManyToManyField(Tag)
     date_created = models.DateField(auto_now_add=True,null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'user'], name='duplicate ranking name')
+        ]
 
     def __str__(self):
         return self.name
@@ -68,6 +73,11 @@ class League(models.Model):
         Standings = 'Standings'
 
     draft_order = models.CharField(max_length=264, choices=DraftOrder.choices, default='Max Points For')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['league_id', 'user'], name='duplicate league')
+        ]
 
 class league_output(models.Model):
     class Meta:
