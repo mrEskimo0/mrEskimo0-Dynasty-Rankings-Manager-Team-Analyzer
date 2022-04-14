@@ -20,7 +20,9 @@ def league_overview(request):
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def league_totalval(request, league_id):
-    this_leaguetotal = table_league_total.objects.filter(league_id=league_id)
+    c_user = User.objects.get(username=request.user.username)
+
+    this_leaguetotal = table_league_total.objects.filter(league_id=league_id, user=c_user)
 
     serializer = League_Table_Serializer(this_leaguetotal, many=True)
 
@@ -31,7 +33,9 @@ def league_totalval(request, league_id):
 @permission_classes([IsAuthenticated])
 def playertotal(request, league_id):
 
-    total_players = league_output.objects.filter(Q(position='QB') | Q(position='RB') | Q(position='WR') | Q(position='TE'), league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    total_players = league_output.objects.filter(Q(position='QB') | Q(position='RB') | Q(position='WR') | Q(position='TE'), league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(total_players, many=True)
 
@@ -42,7 +46,9 @@ def playertotal(request, league_id):
 @permission_classes([IsAuthenticated])
 def position_view_pick(request, league_id):
 
-    picks = league_output.objects.filter(position='Pick', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    picks = league_output.objects.filter(position='Pick', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(picks, many=True)
 
@@ -53,7 +59,9 @@ def position_view_pick(request, league_id):
 @permission_classes([IsAuthenticated])
 def position_view_qb(request, league_id):
 
-    players = league_output.objects.filter(position='QB', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    players = league_output.objects.filter(position='QB', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(players, many=True)
 
@@ -64,7 +72,9 @@ def position_view_qb(request, league_id):
 @permission_classes([IsAuthenticated])
 def position_view_wr(request, league_id):
 
-    players = league_output.objects.filter(position='WR', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    players = league_output.objects.filter(position='WR', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(players, many=True)
 
@@ -75,7 +85,9 @@ def position_view_wr(request, league_id):
 @permission_classes([IsAuthenticated])
 def position_view_rb(request, league_id):
 
-    players = league_output.objects.filter(position='RB', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    players = league_output.objects.filter(position='RB', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(players, many=True)
 
@@ -86,7 +98,9 @@ def position_view_rb(request, league_id):
 @permission_classes([IsAuthenticated])
 def position_view_te(request, league_id):
 
-    players = league_output.objects.filter(position='TE', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    players = league_output.objects.filter(position='TE', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
 
     serializer = Total_Value_Serializer(players, many=True)
 
@@ -97,7 +111,9 @@ def position_view_te(request, league_id):
 @permission_classes([IsAuthenticated])
 def team_specific(request, league_id, display_name):
 
-    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name).order_by('-value')
+    c_user = User.objects.get(username=request.user.username)
+
+    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name, user=c_user).order_by('-value')
 
     serializer = League_Output_Serializer(my_team, many=True)
 
@@ -108,7 +124,9 @@ def team_specific(request, league_id, display_name):
 @permission_classes([IsAuthenticated])
 def team_positionchart(request, league_id, display_name):
 
-    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name).values('position').annotate(value=Sum('value'))
+    c_user = User.objects.get(username=request.user.username)
+
+    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name, user=c_user).values('position').annotate(value=Sum('value'))
 
     serializer = Position_Serializer(my_team, many=True)
 
@@ -119,6 +137,8 @@ def team_positionchart(request, league_id, display_name):
 @permission_classes([IsAuthenticated])
 def team_vs_median(request, league_id, display_name):
 
+    c_user = User.objects.get(username=request.user.username)
+
     def median_value(queryset):
         term = 'value'
         count = queryset.count()
@@ -128,16 +148,16 @@ def team_vs_median(request, league_id, display_name):
         else:
             return sum(values[count/2-1:count/2+1])/float(2.0)
 
-    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name).values('position').annotate(value=Sum('value')).order_by('position')
+    my_team = league_output.objects.filter(league_id=league_id, display_name=display_name, user=c_user).values('position').annotate(value=Sum('value')).order_by('position')
 
     serializer = Position_Serializer(my_team, many=True)
 
     #then get the league median for all the positions
-    picks = league_output.objects.filter(position='Pick', league_id=league_id).values('display_name').annotate(value=Sum('value'))
-    qbs = league_output.objects.filter(position='QB', league_id=league_id).values('display_name').annotate(value=Sum('value'))
-    wrs = league_output.objects.filter(position='WR', league_id=league_id).values('display_name').annotate(value=Sum('value'))
-    rbs = league_output.objects.filter(position='RB', league_id=league_id).values('display_name').annotate(value=Sum('value'))
-    tes = league_output.objects.filter(position='TE', league_id=league_id).values('display_name').annotate(value=Sum('value'))
+    picks = league_output.objects.filter(position='Pick', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
+    qbs = league_output.objects.filter(position='QB', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
+    wrs = league_output.objects.filter(position='WR', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
+    rbs = league_output.objects.filter(position='RB', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
+    tes = league_output.objects.filter(position='TE', league_id=league_id, user=c_user).values('display_name').annotate(value=Sum('value'))
     #get medians
     picks_median = median_value(picks)
     qbs_median = median_value(qbs)
