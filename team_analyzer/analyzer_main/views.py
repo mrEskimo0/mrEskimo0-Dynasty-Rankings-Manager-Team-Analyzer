@@ -7,12 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.forms import formset_factory
 from django.db import IntegrityError
-from . import forms
 from .models import *
 from .functions import copy_default_rankings, get_league
 from .forms import Insert_ID, User_Ranking_Form, User_Insert_ID, Create_User_Form
 from .filters import RankingFilter
-from .serializers import *
 from .chart_functions import league_df_todb, leaguetotals_df_todb
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -161,15 +159,15 @@ def league_view(request, league_id):
     if request.method == 'GET':
 
         c_user = User.objects.get(username=request.user.username)
-
+        print(c_user)
         #delete any existing rows from table before hitting the sleeper api
         league_output.objects.filter(league_id=league_id, user=c_user).delete()
         table_league_total.objects.filter(league_id=league_id, user=c_user).delete()
 
         this_league = League.objects.get(league_id=league_id, user=c_user)
-        #run func to get df of teams
-        league_df = get_league(league_id, this_league)
         ranks_df = pd.DataFrame.from_records(Ranking.objects.filter(user_ranking=this_league.user_ranking).values())[['player_id', 'value', 'date_last_updated']]
+        #run func to get df of teams
+        league_df = get_league(league_id, this_league, ranks_df)
         list_of_ids = league_df['players'].tolist()
         #get players in ranks by active ids
         players_df = pd.DataFrame.from_records(Player.objects.filter(id__in=list_of_ids).values())
@@ -178,6 +176,7 @@ def league_view(request, league_id):
         players_df.rename(columns={'id':'player_id'}, inplace=True)
         #join dfs on player id
         df_temp = pd.merge(league_df, players_df)
+        print(df_temp)
         df_final = pd.merge(df_temp, ranks_df, how='left', on=['player_id'])
         df_final['value'] = df_final['value'].fillna(0)
         df_final['league_id'] = league_id
@@ -188,6 +187,7 @@ def league_view(request, league_id):
         df_final = df_final.drop('roster_id', 1)
         df_final['primary_id'] = df_final['league_id'] + df_final['display_name'] + df_final['name'] + df_final['username']
         df_final = df_final.drop('username', 1)
+        print(df_final)
         league_df_todb(df_final)
 
         #league chart
@@ -206,7 +206,6 @@ def league_view(request, league_id):
 
         return render(request, 'analyzer_main/league_view.html', context)
 
-# @api_view(['GET'])
 @login_required(login_url='login')
 def team_view(request, league_id, display_name):
 
@@ -221,7 +220,6 @@ def make_ranking(request):
     form = User_Ranking_Form()
     if request.method == 'POST':
         #get user
-
         c_user = User.objects.get(username=request.user.username)
 
         form = User_Ranking_Form(request.POST)
@@ -235,8 +233,8 @@ def make_ranking(request):
             template = form.cleaned_data['choose_ranks']
             new_rank.user = c_user
             new_rank.save()
+            #function to set rankings to default ranks
             copy_default_rankings(new_rank, template)
-            #function to get set rankings to default
             return redirect('/dashboard')
 
     context = {'form':form}

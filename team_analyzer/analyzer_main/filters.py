@@ -9,7 +9,6 @@ class Position(models.TextChoices):
     RB = 'RB'
     TE = 'TE'
     Pick = 'Pick'
-    # All = ''
 
 CHOICES = (
     ('QB', 'QB'),
@@ -25,13 +24,9 @@ class RankingFilter(django_filters.FilterSet):
     name = CharFilter(field_name='player__name', lookup_expr='icontains')
 
     value = NumberFilter(field_name='value', lookup_expr='gte')
-    # position = MultipleChoiceFilter(field_name='player__position', queryset=Player.objects.values('position'), widget=forms.CheckboxSelectMultiple())
 
     class Meta:
         model = Ranking
         fields = '__all__'
         exclude = ['player','user','user_ranking', 'date_last_updated']
-
-    # def __init__(self, *args, **kwargs):
-    #     super(RankingFilter, self).__init__(*args, **kwargs)
-    #     self.form.fields['position'] = [True, True, True, True, True]
+        

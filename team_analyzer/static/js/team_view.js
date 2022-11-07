@@ -39,9 +39,6 @@ $.ajax({
         values.push(entry.value);
       });
 
-        // var colors = createColors(values)
-        // console.log(colors)
-
         var chart_ctx = document.getElementById("myTeamChart").getContext("2d");
 
         var chart = new Chart(chart_ctx, {
@@ -57,9 +54,7 @@ $.ajax({
             }]
           },
           options: {
-            // indexAxis: 'y',
             responsive: true,
-            // maintainAspectRatio: false,
             plugins: {
               title: {
                 display: true,
@@ -75,9 +70,7 @@ $.ajax({
                 },
                 color: '#fff',
                 backgroundColor: '#404040',
-                font: {
-                  // weight: 'bold'
-                },
+                font: {},
                 padding: {
                   top: 4,
                   right: 4,
@@ -115,9 +108,6 @@ $.ajax({
         values_team.push(entry.value);
       });
 
-        // var colors = createColors(values)
-        // console.log(colors)
-
         var chart_ctx = document.getElementById("medianRadar").getContext("2d");
 
         var chart = new Chart(chart_ctx, {
@@ -151,9 +141,7 @@ $.ajax({
                 },
               },
             },
-            // indexAxis: 'y',
             responsive: true,
-            // maintainAspectRatio: false,
           }
         });
 

@@ -1,11 +1,3 @@
-// $('.view-ranks').click(function() {
-//   $('#hidden-message').css("display", "block");
-//   $('#welcomeDiv').css("display", "block");
-//   // window.onbeforeunload = function(event) {
-//   //   $('#welcomeDiv').css("display", "none");
-//
-//   // }
-
 function showLoaderOnClick(url) {
       showLoader();
       window.location=url;

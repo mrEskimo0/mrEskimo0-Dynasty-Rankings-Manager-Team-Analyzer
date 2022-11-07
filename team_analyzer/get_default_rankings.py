@@ -44,24 +44,36 @@ def run_the_scrape():
     picks_df = merged_df[merged_df['Position'] == 'PICK']
     merged_df = merged_df[merged_df['Position'] != 'PICK']
 
-    #further split picks df by year, want to do the year finding auto probs
-    PICKS_2022 = picks_df[picks_df['Name'].str.contains("2022")]
-    PICKS_2023 = picks_df[picks_df['Name'].str.contains("2023")]
-    PICKS_2024 = picks_df[picks_df['Name'].str.contains("2024")]
+    #get the years of picks that are ranked
+    group_df = picks_df.copy()
+    group_df['Year'] = group_df['Name'].apply(lambda val: val[0:4])
+    grouped = group_df.groupby(['Year'])
 
-    my_dfs = [PICKS_2022, PICKS_2023, PICKS_2024]
-    picks_thing(my_dfs)
+    #group picks by year, make a df for every years' picks
+    pick_dfs = []
+    for year in grouped.groups.keys():
+        year_df = picks_df.loc[picks_df['Name'].str.contains(str(year))]
+        pick_dfs.append(year_df)
+        #use a .loc to make a new df for every year in the ktc .ranks
+
+    #if the newest picks arent in ktc ranks, copy latest year's picks and change the year in name to latest + 1
+    if len(pick_dfs) <= 3:
+        year_df = pick_dfs[len(pick_dfs)-1].copy()
+        year_df['Name'] = year_df['Name'].apply(lambda val: str(int(val[0:4])+1) + val[4:])
+        year_df['PlayerID'] = year_df['PlayerID'].apply(lambda val: str(int(val[0:4])+1) + val[4:])
+        pick_dfs.append(year_df)
 
     def_user = User.objects.get(username='mrEskimo0')
     u_ranking = User_Ranking.objects.get(name='Consensus Superflex')
     u_ranking_standard = User_Ranking.objects.get(name='Consensus Standard')
-
     date_today = datetime.date.today().strftime('%Y-%m-%d')
+
+    picks_map(pick_dfs, def_user, u_ranking, u_ranking_standard, date_today)
 
     for player in merged_df.itertuples():
         player_name = player.Name
         replaced_name = player.Name.replace('.','')
-        bad_names = {'Kenneth Walker III':'Kenneth Walker', 'Irv Smith Jr.':'Irv Smith', 'Will Fuller':'William Fuller', 'Calvin Austin III':'Calvin Austin','Jeffery Wilson':'Jeff Wilson','Pierre Strong Jr.':'Pierre Strong','Olabisi Johnson':'Bisi Johnson','Lamical Perine':'La\'Mical Perine','Josh Palmer':'Joshua Palmer','LJ Scott':'L.J. Scott'}
+        bad_names = {'Kenneth Walker III':'Kenneth Walker', 'Irv Smith Jr.':'Irv Smith', 'Will Fuller':'William Fuller', 'Calvin Austin III':'Calvin Austin','Jeffery Wilson':'Jeff Wilson','Pierre Strong Jr.':'Pierre Strong','Olabisi Johnson':'Bisi Johnson','Lamical Perine':'La\'Mical Perine','Josh Palmer':'Joshua Palmer','LJ Scott':'L.J. Scott','DK Metcalf':'D.K. Metcalf'}
         if player_name in bad_names.keys():
             player_name = bad_names[player_name]
         if Player.objects.filter(name=player_name).exists() or Player.objects.filter(name=replaced_name).exists():
@@ -102,17 +114,12 @@ def run_the_scrape():
             print(player_name + ' and '+replaced_name+' dont match')
 
 
-def picks_thing(list_of_dfs):
+def picks_map(list_of_dfs, def_user, u_ranking, u_ranking_standard, date_today):
 
     early_first = [1.33,1.13,.985,.945]
     early = [1.065,1.03,.985,.945]
     mid = [1.02,.985,.96,.945]
-    late = [1.065,1.015,.96,.935]
-
-    def_user = User.objects.get(username='mrEskimo0')
-    u_ranking = User_Ranking.objects.get(name='Consensus Superflex')
-    u_ranking_standard = User_Ranking.objects.get(name='Consensus Standard')
-    date_today = datetime.date.today().strftime('%Y-%m-%d')
+    late = [1.05,1.015,.96,.935]
 
     for df in list_of_dfs:
         year = df.iloc[0]['Name'][0:4]
@@ -190,3 +197,5 @@ def picks_thing(list_of_dfs):
                     except (pick_rank_obj.DoesNotExist, pick_rank_obj_non.DoesNotExist, UnboundLocalError) as e:
                         Ranking_History.objects.get_or_create(ranking=created_sf, date=date_today)
                         Ranking_History.objects.get_or_create(ranking=created_non, date=date_today)
+
+# run_the_scrape()

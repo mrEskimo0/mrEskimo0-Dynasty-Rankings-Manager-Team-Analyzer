@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from analyzer_main.models import *
+from analyzer_main.models import league_output, table_league_total
 from .serializers import *
 from get_default_rankings import run_the_scrape
 from populate_players import get_data, populate_players, populate_picks
@@ -202,7 +202,7 @@ def team_vs_median(request, league_id, display_name):
 def run_ktc_scrape(request):
     run_the_scrape()
 
-    return Response({'message':'hey it works'})
+    return Response({'message':'KTC Scrape Successful'})
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -212,4 +212,4 @@ def run_sleeper_pull(request):
     populate_players()
     populate_picks()
 
-    return Response({'message':'hey it works'})
+    return Response({'message':'Sleeper Scrape Successful'})

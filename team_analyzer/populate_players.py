@@ -9,16 +9,14 @@ from analyzer_main.models import Player
 from django.db import IntegrityError
 import pandas as pd
 import json
-import json
 import requests
+import datetime
 
 def get_data():
     solditems = requests.get('https://api.sleeper.app/v1/players/nfl') # (your url)
     data = solditems.json()
     with open('data.json', 'w') as f:
         json.dump(data, f)
-
-#player = Player.objects.get_or_create(name=var,id=var,...)
 
 def populate_players():
     path_to_json = "data.json"
@@ -48,7 +46,10 @@ def populate_players():
                 Player.objects.create(name=p_name,id=p_id,position=p_position)
 
 def populate_picks():
-    for i in range(2022, 2025):
+    #get this year as an int
+    this_year = int(datetime.date.today().strftime('%Y'))
+    #loop through year, year+4 and create pick objects
+    for i in range(this_year, this_year+4):
         for j in range(1, 61):
             p_name = str(i) + ' Pick ' + str(j)
             p_position = 'Pick'

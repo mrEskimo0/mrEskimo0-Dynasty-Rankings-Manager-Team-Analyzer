@@ -6,7 +6,6 @@ def league_df_todb(output_df):
     user = settings.DATABASES['default']['USER']
     password = settings.DATABASES['default']['PASSWORD']
     database_name = settings.DATABASES['default']['NAME']
-
     db_type = settings.DB_TYPE
 
     database_url = 'postgresql+psycopg2://{user}:{password}@{db_type}:5432/{database_name}'.format(
@@ -16,7 +15,7 @@ def league_df_todb(output_df):
         database_name=database_name,
     )
 
-    engine = create_engine(database_url, echo=False)
+    engine = create_engine(database_url, echo=True)
     output_df.to_sql('league_output', con=engine, if_exists='append', index=False)
 
 def leaguetotals_df_todb(output_df):

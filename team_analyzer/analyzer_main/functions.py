@@ -11,15 +11,16 @@ def copy_default_rankings(user_ranking, template):
         n_value = ranking.value
         Ranking.objects.create(user_ranking=n_user_ranking, user=n_user, player=n_player, value=n_value)
 
-def get_league(league_id, this_league):
+def get_league(league_id, this_league, ranks_df):
     import pandas as pd
-    from analyzer_main.models import Player, Ranking
+    from analyzer_main.models import Player, Ranking, League
     from sleeper_wrapper import League, User, Players
     from functools import reduce
 
     league = League(league_id)
     rosters = league.get_rosters()
     users = league.get_users()
+    league_type = this_league.draft_order
 
     users = pd.DataFrame.from_dict(pd.json_normalize(users), orient='columns')
     roster_try = pd.DataFrame.from_records(rosters)
@@ -47,7 +48,7 @@ def get_league(league_id, this_league):
         season = league_data['season']
         #input: league_type (for draft order, mpf or standings)
         #make standings for teams in league
-        def make_standings(rosters, league_type=True):
+        def make_standings(rosters, league_type):
             teams_list = []
             for team in rosters:
                 try:
@@ -55,17 +56,18 @@ def get_league(league_id, this_league):
                 except KeyError:
                     teams_list.append([team['roster_id'], team['settings']['wins'], 0, team['settings']['fpts']])
             order_df = pd.DataFrame(data=teams_list, columns=['roster_id', 'wins', 'max_points_for', 'points_for'])
-            if league_type:
+            if league_type == 'Max Points For':
                 order_df = order_df.sort_values(['max_points_for'])
                 order_df = order_df[['roster_id', 'max_points_for']]
+                order_df.rename(columns={'max_points_for':'points'}, inplace=True)
             else:
                 order_df = order_df.sort_values(['wins', 'points_for'])
                 order_df = order_df[['roster_id', 'wins', 'points_for']]
+                order_df.rename(columns={'points_for':'points'}, inplace=True)
             return order_df
 
         def build_from_scratch(num_teams, draft_rounds, season):
-            #instanciate standard slate of picks for each team
-            #were in 2021, we always go out 3 years, 2022, 2023, 2024
+            #instanciate standard slate of picks for each team for 3 years
             max_season = int(season) + 3
 
             picks = []
@@ -89,8 +91,6 @@ def get_league(league_id, this_league):
 
         def assign_pick_id(picks_df, order_df):
             team_order_list = order_df[['roster_id']].values.tolist()
-            print(team_order_list)
-
             picks_df['Round_Position'] = ''
 
             for x, i in enumerate(team_order_list):
@@ -106,18 +106,27 @@ def get_league(league_id, this_league):
 
             return picks_df
 
-        picks_df = build_from_scratch(num_teams, draft_rounds, season)
-        picks_df = trade_picks(traded_picks, picks_df)
+        def assign_pick_id_fromteamvals(picks_df, mapped_vals):
+            team_order_list = mapped_vals.index.values.tolist()
 
-        #check if points scored == 0 for all the columns
-        order_df = make_standings(rosters)
+            picks_df['Round_Position'] = ''
+
+            for x, i in enumerate(team_order_list):
+                team = i
+                picks_df.loc[(picks_df['Team'] == team), 'Round_Position'] = x+1
+
+            def make_id(year, d_round, position, team_order_list):
+                teams_num = len(team_order_list)
+                pick = teams_num*d_round + position - teams_num
+                return str(year) + '-' + str(pick)
+            #year-round-pick
+            picks_df['players'] = picks_df[['Year', 'Round', 'Round_Position']].apply(lambda picks_df: make_id(picks_df['Year'], picks_df['Round'], picks_df['Round_Position'], team_order_list), axis=1)
+
+            return picks_df
+
         drafts = league.get_all_drafts()
-        if order_df['max_points_for'].sum() != 0:
-
-            final_df = assign_pick_id(picks_df, order_df)
-
-        #check for pre-draft draft in league
-        elif drafts[0]['status'] == 'pre_draft' and drafts[0]['draft_order'] is not None:
+        #if latest draft is not drafted + draft order is in use that draft's order
+        if drafts[0]['status'] == 'pre_draft' and drafts[0]['draft_order'] is not None:
             draft_order = drafts[0]['draft_order']
 
             ids = pd.Series(merged.roster_id.values, merged.owner_id).to_dict()
@@ -127,28 +136,40 @@ def get_league(league_id, this_league):
                 spot = draft_order[owner_id]
                 existing_draft_order[roster_id] = spot
 
+            picks_df = build_from_scratch(num_teams, draft_rounds, season)
+            picks_df = trade_picks(traded_picks, picks_df)
             order_df = pd.DataFrame(existing_draft_order.items(), columns=['roster_id', 'draft_spot'])
             order_df = order_df.sort_values(by=['draft_spot'])
 
             final_df = assign_pick_id(picks_df, order_df)
 
         else:
-            ranks_df = pd.DataFrame.from_records(Ranking.objects.filter(user_ranking=this_league.user_ranking).values())[['player_id', 'value', 'date_last_updated']]
-            merged_copy = merged.copy()
-            merged_copy.rename(columns={'players':'player_id'}, inplace=True)
-            dfs = [merged_copy, ranks_df]
-            mapped_vals = reduce(lambda left,right: pd.merge(left, right, on='player_id'), dfs)
-            #groupby then sum players
-            mapped_vals = mapped_vals.groupby(['roster_id'])['value'].sum()
-            #order by value
-            mapped_vals.sort_values(inplace=True)
+            picks_df = build_from_scratch(num_teams, draft_rounds, int(season)+1)
+            picks_df = trade_picks(traded_picks, picks_df)
+            order_df = make_standings(rosters, league_type)
 
-            final_df = assign_pick_id(picks_df, order_df)
+            #if points are scored, use current standings
 
+            if order_df['points'].sum() != 0:
+                final_df = assign_pick_id(picks_df, order_df)
+
+            else:
+                #in between draft and season
+                merged_copy = merged.copy()
+                merged_copy.rename(columns={'players':'player_id'}, inplace=True)
+                dfs = [merged_copy, ranks_df]
+                mapped_vals = reduce(lambda left,right: pd.merge(left, right, on='player_id'), dfs)
+                #groupby then sum players
+                mapped_vals = mapped_vals.groupby(['roster_id'])['value'].sum()
+                #order by value
+                mapped_vals.sort_values(inplace=True)
+
+                final_df = assign_pick_id_fromteamvals(picks_df, mapped_vals)
 
         picks_df_cleaned = picks_df[['players', 'roster_id']]
         picks_df_cleaned['display_name'] = ''
 
+        #map display name to roster id
         team_order_list = order_df[['roster_id']].values.tolist()
         for i in team_order_list:
             team = i[0]
@@ -160,6 +181,4 @@ def get_league(league_id, this_league):
     picks_df = add_draft_picks(merged, league, rosters)
     #ADD PICKS TO PLAYERS DF
     merged = merged.append(picks_df)
-    # list_of_teams = list(set(merged['display_name'].tolist()))
-
     return merged

@@ -45,23 +45,6 @@ class Ranking(models.Model):
     value = models.FloatField(default=0, null=True)
     date_last_updated = models.DateField(default=datetime.date.today, blank=True)
 
-class Team(models.Model):
-    team = models.CharField(max_length=25, null=True)
-    league_id = models.CharField(max_length=25)
-    team_name = models.CharField(max_length=25)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    user_ranking = models.ForeignKey(User_Ranking, null=True, on_delete=models.SET_NULL)
-    team_ids = models.CharField(max_length=10000, null=True)
-
-    class DraftOrder(models.TextChoices):
-        Max_Points_For = 'Max Points For'
-        Standings = 'Standings'
-
-    draft_order = models.CharField(max_length=264, choices=DraftOrder.choices, default='Max Points For')
-
-    def __str__(self):
-        return self.team
-
 class League(models.Model):
     name = models.CharField(max_length=30, null=True)
     league_id = models.CharField(max_length=30)

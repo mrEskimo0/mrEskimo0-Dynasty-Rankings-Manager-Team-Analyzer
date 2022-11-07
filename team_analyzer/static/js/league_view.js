@@ -202,7 +202,6 @@ $.ajax({
           datasets: [{
             label: 'Total Team Value',
             backgroundColor: colors,
-            // borderColor: 'rgb(255, 99, 132)',
             data: values,
           }]
         },
@@ -266,7 +265,6 @@ $.ajax({
           datasets: [{
             label: 'Total Team Value',
             backgroundColor: colors,
-            // borderColor: 'rgb(255, 99, 132)',
             data: values,
           }]
         },
@@ -291,10 +289,6 @@ $.ajax({
           },
           responsive: true,
           maintainAspectRatio: false,
-          // animation: {
-          //     duration: 0
-          // }
-          // indexAxis: 'y',
         },
         plugins: [ChartDataLabels],
       });
@@ -334,7 +328,6 @@ $.ajax({
           datasets: [{
             label: 'Total Team Value',
             backgroundColor: colors,
-            // borderColor: 'rgb(255, 99, 132)',
             data: values,
           }]
         },
@@ -398,7 +391,6 @@ $.ajax({
           datasets: [{
             label: 'Total Team Value',
             backgroundColor: colors,
-            // borderColor: 'rgb(255, 99, 132)',
             data: values,
           }]
         },
@@ -462,7 +454,6 @@ $.ajax({
           datasets: [{
             label: 'Total Team Value',
             backgroundColor: colors,
-            // borderColor: 'rgb(255, 99, 132)',
             data: values,
           }]
         },

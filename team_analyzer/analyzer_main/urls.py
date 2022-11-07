@@ -21,9 +21,6 @@ urlpatterns = [
     path('delete_team/<str:league_id>',views.delete_team, name="delete_team"),
     path('delete_ranking/<str:r_name>',views.delete_ranking, name="delete_ranking"),
 
-    #charts
-    # path('league_chart/<str:league_id>',views.league_chart,name='league_chart'),
-
     #reset password
     path('reset_password/',
      auth_views.PasswordResetView.as_view(template_name="analyzer_main/password_reset/password_reset.html"),
